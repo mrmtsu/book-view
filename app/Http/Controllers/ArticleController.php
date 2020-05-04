@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class ArticleController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Article::class, 'article');
+    }
+    
     public function index()
     {
         $articles = Article::all()->sortByDesc('created_at');
@@ -34,7 +39,7 @@ class ArticleController extends Controller
         $request->file('image')->store('/public/images');
         $data = ['user_id' => \Auth::id(), 'title' => $article['title'], 'body' => $article['body'], 'image' => $request->file('image')->hashName(), 'created_at' => $now, 'updated_at' => $now];
     } else {
-        $data = ['user_id' => \Auth::id(), 'title' => $post['title'], 'body' => $post['body'], 'created_at' => $now, 'updated_at' => $now];
+        $data = ['user_id' => \Auth::id(), 'title' => $article['title'], 'body' => $article['body'], 'created_at' => $now, 'updated_at' => $now];
     }
         Article::insert($data);
         return redirect()->route('articles.index');
@@ -44,4 +49,21 @@ class ArticleController extends Controller
     {
         return view('articles.edit', ['article' => $article]);    
     }
+
+    public function update(ArticleRequest $request, Article $article)
+    {
+        $article->fill($request->all())->save();
+        return redirect()->route('articles.index');
+    }
+
+    public function destroy(Article $article)
+    {
+        $article->delete();
+        return redirect()->route('articles.index');
+    }
+
+    public function show(Article $article)
+    {
+        return view('articles.show', ['article' => $article]);
+    } 
 }
